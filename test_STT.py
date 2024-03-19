@@ -1,7 +1,7 @@
 import replicate
 import os
 
-os.environ["REPLICATE_API_TOKEN"] = "r8_D8MWaMlttrIvVpwkDcI4JBhzFqKlv1x2OnZNu"
+os.environ["REPLICATE_API_TOKEN"] = "***"
 
 output = replicate.run(
     "vaibhavs10/incredibly-fast-whisper:3ab86df6c8f54c11309d4d1f930ac292bad43ace52d10c80d87eb258b3c9f79c",
