@@ -15,14 +15,13 @@ https://ollama.com/download/
 ```
 python app.py
 ```
-#
+
 #### (option) 執行 - 多人
 ```
 gunicorn --workers=4 --threads=4 wsgi:app
 ```
-#
 
 ### API 測試
-'''
+```
 http://.../api/v1/test
-'''
+```
