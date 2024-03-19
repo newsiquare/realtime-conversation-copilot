@@ -1,7 +1,7 @@
 import replicate
 import os
 
-os.environ["REPLICATE_API_TOKEN"] = "r8_D8MWaMlttrIvVpwkDcI4JBhzFqKlv1x2OnZNu"
+os.environ["REPLICATE_API_TOKEN"] = "***"
 
 _transcript  = "說個笑話"
 _prompt_text = "您是一位專業的語言治療師，擅長提供故事、笑話等方式，吸引兒童並改善語言治療。簡短，少於150字。" 
