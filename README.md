@@ -1,7 +1,8 @@
 ## realtime-conversation-copilot
 用 Flask 串接 ollama 及 Faster Whisper， 產生 Web-service
-#
-#
+
+![image](https://github.com/newsiquare/realtime-conversation-copilot/blob/main/introduction.jpg)
+
 ### 環境安裝
 pip install flask, flask-restful, replicate, boto3, ollama
 #
