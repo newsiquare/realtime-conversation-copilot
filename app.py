@@ -16,13 +16,13 @@ ollamaModel = 'gemma:7b'
 
 
 # AWS S3 Bucket
-aws_access_key = "AKIA5XHZCLWGNTVJKVZR"
-aws_secret_key = "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"
+aws_access_key = "***"
+aws_secret_key = "***"
 bucket_name = "conversationcopliot"
 s3 = boto3.client("s3", aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
 
 # Replicate, REPLICATE_API_TOKEN environment variable
-os.environ["REPLICATE_API_TOKEN"] = "r8_D8MWaMlttrIvVpwkDcI4JBhzFqKlv1x2OnZNu"
+os.environ["REPLICATE_API_TOKEN"] = "***"
 
 
 UPLOAD_FOLDER_AUDIO = './temp_audio'
