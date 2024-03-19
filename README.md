@@ -5,12 +5,12 @@
 
 ### 環境安裝
 pip install flask, flask-restful, replicate, boto3, ollama
-#
-#
+
+
 ### 本機安裝 ollama
 https://ollama.com/download/
-#
-#
+
+
 ### 執行
 python app.py
 #
