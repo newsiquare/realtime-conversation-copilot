@@ -1,7 +1,7 @@
 import replicate
 import os
 
-os.environ["REPLICATE_API_TOKEN"] = "r8_D8MWaMlttrIvVpwkDcI4JBhzFqKlv1x2OnZNu"
+os.environ["REPLICATE_API_TOKEN"] = "***"
 
 # # cjwbw/seamless_communication
 # output = replicate.run(
