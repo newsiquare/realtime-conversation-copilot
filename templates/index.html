@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation copilot</title>
+    <style>
+        .voiceBoxCSS {
+            background-color: #c8f8ff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 5px;
+            height: 100px;
+            color: gray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .promptBoxCSS {
+            background-color: #c8f8ff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 5px;
+            height: 150px;
+            color: gray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            width: 70%;
+        }
+
+        .llmBoxCSS {
+            background-color: #c8f8ff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 5px;
+            height: 400px;
+            color: gray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            width: 50%;
+        }
+
+        .btnCSS{
+            margin:3px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .flex-center{
+            display: flex;
+            justify-content:center;
+        }
+
+        .item {
+            /* 無影響的屬性 */
+            height: 100%;
+            background-color: #f08bc3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            border: 1px solid white;
+            box-sizing: border-box;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="flex-center">
+        <p3> 錄音 </p3>
+    </div>
+      
+    <div class="flex-center">
+        <button id="recordButton_whiper" class="btnCSS btn btn-primary btn-lg" >Local Whisper</button>
+        <button id="recordButton_api" class="btnCSS btn btn-info btn-lg">Remote - API</button>
+    </div>
+       
+    <div class="flex">
+        <div id="transcript_whisper" class="flex-1 voiceBoxCSS">Local Whisper</div>
+        <div id="transcript_api" class="flex-1 voiceBoxCSS">Remote - API</div>
+    </div>   
+    <p> 
+    <div class="flex-center">
+        <p3> LLM回覆 </p3>
+    </div>
+      
+    <div class="flex-center">
+        <button id="summaryButton_ollama" class="btnCSS btn btn-warning btn-lg" >Local ollama</button>
+        <button id="summaryButton_api" class="btnCSS btn btn-success btn-lg">Remote - API</button>
+    </div>
+      
+    <div class="flex-center">
+        <textarea id="prompt" rows="10" class="promptBoxCSS">您是一位專業的語言治療師，擅長提供故事、笑話等方式，吸引兒童並改善語言治療。簡短，少於150字。</textarea>
+    </div>
+      
+    <div class="flex">
+        <div id="suggestion_ollama" class="flex-1 llmBoxCSS">Local ollama</div>
+        <div id="suggestion_api" class="flex-1 llmBoxCSS">Remote - API</div>
+    </div>
+    
+
+    <script>
+        const recordButton_whiper  = document.getElementById('recordButton_whiper');
+        const recordButton_api       = document.getElementById('recordButton_api');
+        const transcript_whisper   = document.getElementById('transcript_whisper');
+        const transcript_api   = document.getElementById('transcript_api');
+        const summaryButton_ollama = document.getElementById('summaryButton_ollama');
+        const summaryButton_api = document.getElementById('summaryButton_api');
+        
+        let isRecording = false;
+        let mediaRecorder;
+        let intervalId;
+        let full_transcript = '';
+
+        let isRecordButtonWhipserClicked = false;
+        let isRecordButtonAPIClicked = false;
+        let isSummaryButtonOllamaCliecked = false;
+        let isSummaryButtonAPICliecked = false;
+
+        // Set up WebSocket event listeners
+        summaryButton_ollama.addEventListener('click', async () => {
+            const promptText = document.getElementById('prompt').value;
+            
+            // const response = await fetch('/get-suggestion', {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ transcript: full_transcript, 
+                                        prompt: promptText })
+            });
+
+            const data = await response.json();
+            console.log(data);
+            document.getElementById('suggestion_ollama').textContent = data.suggestion; 
+
+            isSummaryButtonOllamaCliecked = !isSummaryButtonOllamaCliecked;
+        });
+        
+        summaryButton_api.addEventListener('click', async () => {
+            const promptText = document.getElementById('prompt').value;
+            
+            const response = await fetch('/get-suggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ transcript: full_transcript, 
+                                        prompt: promptText })
+            });
+
+            const data = await response.json();
+            console.log(data);
+            document.getElementById('suggestion_api').textContent = data.suggestion; 
+            
+            // isSummaryButtonAPICliecked = !isSummaryButtonAPICliecked;
+        });
+
+
+        recordButton_whiper.addEventListener('click', () => {
+            isRecordButtonWhipserClicked = true;
+            if (!isRecording) {
+                console.log('--- click startRecording ---');
+                startRecording();
+                recordButton_whiper.textContent = 'Stop Recording';
+            } else {
+                stopRecording();
+                recordButton_whiper.textContent = 'Start Recording';
+            }
+            isRecording = !isRecording;
+        });
+
+        recordButton_api.addEventListener('click', () => {
+            isRecordButtonAPIClicked = true;
+            if (!isRecording) {
+                console.log('--- click startRecording ---');
+                startRecording();
+                recordButton_api.textContent = 'Stop Recording';
+            } else {
+                stopRecording();
+                recordButton_api.textContent = 'Start Recording';
+            }
+            isRecording = !isRecording;
+        });
+
+
+        async function startRecording() {
+            console.log('--- 自動 startRecording ---');
+            console.log('isRecordButtonWhipserClicked = ', isRecordButtonWhipserClicked)
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            function createRecorder() {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.addEventListener('dataavailable', async event => {
+                    console.log('Data available');
+
+                    if ( isRecordButtonWhipserClicked == true )
+                    {
+                        // const audioBlob = event.data;
+                        const audioBlob = new Blob([event.data], {type: 'audio/mp3'});
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob);
+                        console.log('formData = ', formData);
+
+                        // const response = await fetch('/process-audio', {
+                        const response = await fetch('/process-audio-whisper', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        if(data.transcript != null){
+                            full_transcript += data.transcript;
+                            transcript_whisper.textContent = full_transcript;
+                        }
+
+                        console.log('data.transcript = ', data.transcript)
+                        isRecordButtonWhipserClicked = !isRecordButtonWhipserClicked;
+                    }
+                    else if ( isRecordButtonAPIClicked == true )
+                    {
+                        console.log('RecordButtonReplicateClicked = true')
+                        const audioBlob = event.data;
+                        // const audioBlob = new Blob([event.data], {type: 'audio/mp3'});
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob);
+                        console.log('formData = ', formData);
+
+                        const response = await fetch('/process-audio', {
+                        // const response = await fetch('/process-audio-whisper', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        if(data.transcript != null){
+                            full_transcript += data.transcript;
+                            transcript_api.textContent = full_transcript;
+                        }
+
+                        console.log('data.transcript = ', data.transcript)
+                        isRecordButtonAPIClicked = !isRecordButtonAPIClicked;
+                    }
+                    else { console.log('I hava a proble about record!') }
+                });
+                
+                mediaRecorder.start();
+            }
+
+            createRecorder(); // Start recording initially
+
+            // Set interval to stop current recorder and start a new one every 10 seconds
+            intervalId = setInterval(() => {
+                mediaRecorder.stop();
+                createRecorder();
+            }, 5000);
+        }
+
+        function stopRecording() {
+            clearInterval(intervalId); // Stop the interval
+            mediaRecorder.stop();
+        }
+    </script>
+</body>
+</html>
